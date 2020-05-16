@@ -9,6 +9,8 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -22,15 +24,17 @@ import com.co.s4n.SuCorrientazoDomiclio.exception.HandleRoutesFileException;
  */
 public class RoutesFileReader {
 
+	private final static Logger LOGGER =  Logger.getLogger(Logger.GLOBAL_LOGGER_NAME); 
+	
 	public static Optional<List<String>> getRoutesFromFile(String routesFileLocation) throws HandleRoutesFileException {
 		Optional<List<String>> routes = Optional.empty();
 		try (Stream<String> stream = Files.lines(Paths.get(routesFileLocation))) {
 			routes = Optional.ofNullable(stream.collect(Collectors.toList()));
 		} catch (NoSuchFileException | NullPointerException ex) {
-			ex.printStackTrace(System.out);
+			LOGGER.log(Level.SEVERE, ex.getMessage());
 			throw new HandleRoutesFileException("The file was not found", ex);
 		} catch (IOException e) {
-			e.printStackTrace(System.out);
+			LOGGER.log(Level.SEVERE, e.getMessage());
 			throw new HandleRoutesFileException("There was an error trying to load the routes file, technical error: ",
 					e);
 		}
@@ -57,9 +61,9 @@ public class RoutesFileReader {
 		try {
 			routesFiles = Optional.ofNullable(Files.walk(Paths.get(pathFolder)).collect(Collectors.toList()));
 		} catch (NoSuchFileException | NullPointerException ex) {
-			ex.printStackTrace(System.out);
+			LOGGER.log(Level.SEVERE, ex.getMessage());
 		} catch (IOException e) {
-			e.printStackTrace(System.out);
+			LOGGER.log(Level.SEVERE, e.getMessage());
 		}
 
 		return routesFiles;
@@ -69,7 +73,7 @@ public class RoutesFileReader {
 		String content = "\n== Reporte de entregas ==";
 		Optional<String> resourcePath = getMainFolderResourcesPath();
 		if(!resourcePath.isPresent() || resourcePath.get().isEmpty()) {
-			System.out.println("No se puede almacenar los puntos de entrega del dron "+ droneId+
+			LOGGER.log(Level.INFO, "No se puede almacenar los puntos de entrega del dron "+ droneId+
 					" Porque la url de recursos no fue encontrada.");
 		}
 		
@@ -86,8 +90,7 @@ public class RoutesFileReader {
 	                StandardOpenOption.APPEND);
 			
 		} catch (IOException e) {
-			e.printStackTrace();
-			System.out.println("No se puede almacenar los puntos de entrega del dron "+ droneId+
+			LOGGER.log(Level.SEVERE, "No se puede almacenar los puntos de entrega del dron "+ droneId+
 					" sucedio un error mientras se escribia el archivo.");
 		}
 	}
