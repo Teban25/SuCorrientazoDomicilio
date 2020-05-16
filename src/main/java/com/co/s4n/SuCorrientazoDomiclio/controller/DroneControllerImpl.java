@@ -7,6 +7,8 @@ import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.co.s4n.SuCorrientazoDomiclio.exception.HandleRoutesFileException;
 import com.co.s4n.SuCorrientazoDomiclio.exception.InvalidNameException;
@@ -17,6 +19,8 @@ import com.co.s4n.SuCorrientazoDomiclio.services.DroneServicesImpl;
 import com.co.s4n.SuCorrientazoDomiclio.util.RoutesFileReader;
 
 public class DroneControllerImpl implements DroneController {
+	
+	private final static Logger LOGGER =  Logger.getLogger(Logger.GLOBAL_LOGGER_NAME); 
 
 	private DroneServices droneServices;
 	private ExecutorService executor = Executors.newFixedThreadPool(10);
@@ -48,13 +52,11 @@ public class DroneControllerImpl implements DroneController {
 				
 				executor.execute(()->getDroneServices().makeDeliveries(droneToDelivering));
 			} catch (HandleRoutesFileException e) {
-				e.printStackTrace(System.err);
-				System.out.println("El archivo " + x.toFile().getName() + " no se pudo cargar al dron.");
+				LOGGER.log(Level.SEVERE, "El archivo " + x.toFile().getName() + " no se pudo cargar al dron.");
 			} catch (NotRoutesFoundInFile ex) {
-				ex.printStackTrace(System.err);
-				System.out.println("El archivo " + x.toFile().getName() + " no contenia ninguna ruta.");
+				LOGGER.log(Level.SEVERE, "El archivo " + x.toFile().getName() + " no contenia ninguna ruta.");
 			} catch (InvalidNameException ex) {
-				ex.printStackTrace(System.err);
+				LOGGER.log(Level.SEVERE, "El archivo " + x.toFile().getName() + " no tiene el patron establecido (inxx.txt).");
 			}
 		});
 		
@@ -79,7 +81,7 @@ public class DroneControllerImpl implements DroneController {
 		try {
 			droneName = droneRouteFile.toFile().getName().split("in")[1].split(".txt")[0];
 		} catch (ArrayIndexOutOfBoundsException e) {
-			e.printStackTrace(System.err);
+			LOGGER.log(Level.SEVERE, e.getMessage());
 			throw new InvalidNameException("The file name does not have the propouse pattern", e);
 		}
 		return droneName;
