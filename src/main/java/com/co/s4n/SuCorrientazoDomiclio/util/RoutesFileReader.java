@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -43,5 +45,50 @@ public class RoutesFileReader {
 			e.printStackTrace(System.out);
 		}
 		return path;
+	}
+
+	public static Optional<String> getMainFolderResourcesPath() {
+		Optional<String> path = Optional.ofNullable(Paths.get("src", "main", "resources").toFile().getAbsolutePath());
+		return path;
+	}
+
+	public static Optional<List<Path>> getResourcesFromPath(String pathFolder) {
+		Optional<List<Path>> routesFiles = Optional.empty();
+		try {
+			routesFiles = Optional.ofNullable(Files.walk(Paths.get(pathFolder)).collect(Collectors.toList()));
+		} catch (NoSuchFileException | NullPointerException ex) {
+			ex.printStackTrace(System.out);
+		} catch (IOException e) {
+			e.printStackTrace(System.out);
+		}
+
+		return routesFiles;
+	}
+
+	public static void writeFinalDeliveredPoints(List<String> finalDeliveyPoints, String droneId) {
+		String content = "\n== Reporte de entregas ==";
+		Optional<String> resourcePath = getMainFolderResourcesPath();
+		if(!resourcePath.isPresent() || resourcePath.get().isEmpty()) {
+			System.out.println("No se puede almacenar los puntos de entrega del dron "+ droneId+
+					" Porque la url de recursos no fue encontrada.");
+		}
+		
+		String resourceOutPath = resourcePath.get() + "\\out\\out" + droneId + ".txt";
+		
+		for (String endPoint : finalDeliveyPoints) {
+			content = content.concat("\n" + endPoint);
+		}
+		
+		try {
+			Files.write(Paths.get(resourceOutPath), 
+					content.getBytes(),
+	                StandardOpenOption.CREATE, 
+	                StandardOpenOption.APPEND);
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+			System.out.println("No se puede almacenar los puntos de entrega del dron "+ droneId+
+					" sucedio un error mientras se escribia el archivo.");
+		}
 	}
 }
